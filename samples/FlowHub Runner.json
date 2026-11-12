@@ -1,0 +1,299 @@
+{
+  "name": "FlowHub Runner",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "flowhub-run",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "FlowHub run request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "flowhub-run"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Body sent by FlowHub: { mode, name, input, workflow:{name,nodes,connections,settings} }\nconst b = $input.first().json.body;\nconst wf = b.workflow;\nif (!wf || !Array.isArray(wf.nodes)) throw new Error('No workflow in request body');\nreturn [{ json: {\n  mode: b.mode || 'execute',\n  input: b.input || {},\n  name: wf.name || b.name || 'FlowHub workflow',\n  nodes: wf.nodes,\n  connections: wf.connections || {},\n  settings: wf.settings || {},\n}}];"
+      },
+      "name": "Prepare workflow body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "workflowObject": "={{ JSON.stringify({ name: $json.name, nodes: $json.nodes, connections: $json.connections, settings: $json.settings }) }}",
+        "requestOptions": {}
+      },
+      "name": "Create workflow in n8n",
+      "type": "n8n-nodes-base.n8n",
+      "typeVersion": 1,
+      "position": [
+        440,
+        300
+      ],
+      "credentials": {
+        "n8nApi": {
+          "id": "REPLACE_ME",
+          "name": "n8n account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $('Prepare workflow body').item.json.mode }}",
+              "rightValue": "execute",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Execute or activate?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "={{ $('Create workflow in n8n').item.json.id }}",
+          "mode": "id"
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "name": "Execute workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        180
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const created = $('Create workflow in n8n').first().json;\nconst items = $input.all().map(i => i.json);\nreturn [{ json: { ok: true, action: 'executed', workflowId: created.id, workflowName: created.name, output: items.slice(0, 50), outputCount: items.length } }];"
+      },
+      "name": "Build execute response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const created = $('Create workflow in n8n').first().json;\nconst err = $input.first().json;\nreturn [{ json: { ok: false, action: 'executed', workflowId: created.id, workflowName: created.name, error: err.error?.message || err.message || JSON.stringify(err).slice(0, 500) } }];"
+      },
+      "name": "Build error response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "activate",
+        "workflowId": {
+          "__rl": true,
+          "value": "={{ $('Create workflow in n8n').item.json.id }}",
+          "mode": "id"
+        },
+        "requestOptions": {}
+      },
+      "name": "Activate workflow",
+      "type": "n8n-nodes-base.n8n",
+      "typeVersion": 1,
+      "position": [
+        900,
+        460
+      ],
+      "credentials": {
+        "n8nApi": {
+          "id": "REPLACE_ME",
+          "name": "n8n account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const wf = $input.first().json;\nconst hook = (wf.nodes || []).find(n => n.type === 'n8n-nodes-base.webhook');\nconst base = $env.WEBHOOK_URL || $env.N8N_EDITOR_BASE_URL || '';\nreturn [{ json: { ok: true, action: 'activated', workflowId: wf.id, workflowName: wf.name, active: wf.active,\n  webhookUrl: hook ? `${base.replace(/\\/$/, '')}/webhook/${hook.parameters?.path || hook.webhookId}` : null } }];"
+      },
+      "name": "Build activate response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1360,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "FlowHub run request": {
+      "main": [
+        [
+          {
+            "node": "Prepare workflow body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare workflow body": {
+      "main": [
+        [
+          {
+            "node": "Create workflow in n8n",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create workflow in n8n": {
+      "main": [
+        [
+          {
+            "node": "Execute or activate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute or activate?": {
+      "main": [
+        [
+          {
+            "node": "Execute workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Activate workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute workflow": {
+      "main": [
+        [
+          {
+            "node": "Build execute response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build error response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build execute response": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build error response": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Activate workflow": {
+      "main": [
+        [
+          {
+            "node": "Build activate response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build activate response": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

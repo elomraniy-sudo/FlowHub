@@ -1,0 +1,13 @@
+{
+  "name": "Jira ticket AI triage -> assign & label",
+  "nodes": [
+    {"parameters": {"events": ["jira:issue_created"], "jqlFilter": "project = OPS"}, "name": "Jira Trigger", "type": "n8n-nodes-base.jiraTrigger", "typeVersion": 1, "position": [0, 0], "credentials": {"jiraSoftwareCloudApi": {"id": "9", "name": "Ops Jira"}}},
+    {"parameters": {"model": "gpt-4o-mini", "messages": {"values": [{"content": "=Classify this ticket into one of: infra, access, billing, other. Reply with the label only.\n\n{{$json.issue.fields.summary}}\n{{$json.issue.fields.description}}"}]}}, "name": "Classify with LLM", "type": "@n8n/n8n-nodes-langchain.openAi", "typeVersion": 1.3, "position": [220, 0], "credentials": {"openAiApi": {"id": "2", "name": "OpenAI team key"}}},
+    {"parameters": {"operation": "update", "issueKey": "={{$('Jira Trigger').item.json.issue.key}}", "updateFields": {"labels": "={{[$json.message.content.trim()]}}", "assignee": {"__rl": true, "value": "5f1a2b3c-ops-lead", "mode": "id"}}}, "name": "Update issue", "type": "n8n-nodes-base.jira", "typeVersion": 1, "position": [440, 0], "credentials": {"jiraSoftwareCloudApi": {"id": "9", "name": "Ops Jira"}}}
+  ],
+  "connections": {
+    "Jira Trigger": {"main": [[{"node": "Classify with LLM", "type": "main", "index": 0}]]},
+    "Classify with LLM": {"main": [[{"node": "Update issue", "type": "main", "index": 0}]]}
+  },
+  "settings": {}
+}

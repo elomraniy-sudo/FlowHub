@@ -1,0 +1,524 @@
+{
+  "name": "FlowHub Bridge",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "flowhub-bridge",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "FlowHub request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "flowhub-bridge"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "registry",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "registry"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "file",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "file"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "doc",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "doc"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "upload",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "upload"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Route by action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Cenq497IektpOrMDtyELOmE5cYsALmTMUo5j2m2EA44",
+          "mode": "list",
+          "cachedResultName": "All N8N Flows"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Main"
+        },
+        "options": {}
+      },
+      "name": "Read registry sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        520,
+        0
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "z9aM1Rf3YSkhEiAz",
+          "name": "Google Sheets account 34"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json).filter(r => r['Flow Name']);\nreturn [{ json: { rows } }];"
+      },
+      "name": "Collect rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "returnAll": true,
+        "filter": {
+          "driveId": {
+            "__rl": true,
+            "value": "My Drive",
+            "mode": "list",
+            "cachedResultName": "My Drive"
+          },
+          "folderId": {
+            "__rl": true,
+            "value": "1WzwOoFR_lBZqaST2ZN4F4f9ZwXZn6CdX",
+            "mode": "list",
+            "cachedResultName": "AI Project"
+          },
+          "whatToSearch": "files"
+        },
+        "options": {}
+      },
+      "name": "List AI Project files",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1000,
+        0
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "iN6hySb3I7yF5cCv",
+          "name": "Google Drive account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $('Collect rows').first().json.rows;\nconst files = $input.all().map(i => i.json).filter(f => f.id && /\\.json$/i.test(f.name || ''))\n  .map(f => ({ id: f.id, name: f.name, modifiedTime: f.modifiedTime, owners: f.owners || [] }));\nreturn [{ json: { rows, files } }];"
+      },
+      "name": "Build registry response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "name": "Respond registry",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.body.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "name": "Download JSON",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        520,
+        200
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "iN6hySb3I7yF5cCv",
+          "name": "Google Drive account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "name": "Read JSON",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        760,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ content: $json.data }) }}",
+        "options": {}
+      },
+      "name": "Respond file",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1000,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "={{ $json.body.id }}",
+        "simple": true
+      },
+      "name": "Get doc",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        520,
+        400
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "X6shY4tJNaMAIREv",
+          "name": "Google Docs account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ text: $json.content || '' }) }}",
+        "options": {}
+      },
+      "name": "Respond doc",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        760,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const b = $input.first().json.body;\nconst name = String(b.name || 'workflow.json').replace(/\\.json$/i, '') + '.json';\nconst buf = Buffer.from(JSON.stringify(b.content, null, 2), 'utf8');\nreturn [{ json: { name }, binary: { data: await this.helpers.prepareBinaryData(buf, name, 'application/json') } }];"
+      },
+      "name": "JSON to binary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "data",
+        "name": "={{ $json.name }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1WzwOoFR_lBZqaST2ZN4F4f9ZwXZn6CdX",
+          "mode": "list",
+          "cachedResultName": "AI Project"
+        },
+        "options": {}
+      },
+      "name": "Upload to AI Project",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        760,
+        600
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "iN6hySb3I7yF5cCv",
+          "name": "Google Drive account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ id: $json.id, name: $json.name, webViewLink: $json.webViewLink }) }}",
+        "options": {}
+      },
+      "name": "Respond upload",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1000,
+        600
+      ]
+    }
+  ],
+  "connections": {
+    "FlowHub request": {
+      "main": [
+        [
+          {
+            "node": "Route by action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by action": {
+      "main": [
+        [
+          {
+            "node": "Read registry sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download JSON",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get doc",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "JSON to binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read registry sheet": {
+      "main": [
+        [
+          {
+            "node": "Collect rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect rows": {
+      "main": [
+        [
+          {
+            "node": "List AI Project files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List AI Project files": {
+      "main": [
+        [
+          {
+            "node": "Build registry response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build registry response": {
+      "main": [
+        [
+          {
+            "node": "Respond registry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download JSON": {
+      "main": [
+        [
+          {
+            "node": "Read JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read JSON": {
+      "main": [
+        [
+          {
+            "node": "Respond file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get doc": {
+      "main": [
+        [
+          {
+            "node": "Respond doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON to binary": {
+      "main": [
+        [
+          {
+            "node": "Upload to AI Project",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to AI Project": {
+      "main": [
+        [
+          {
+            "node": "Respond upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

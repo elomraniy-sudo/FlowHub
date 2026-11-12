@@ -1,0 +1,16 @@
+{
+  "name": "Daily Sales Report: Google Sheets -> Slack",
+  "nodes": [
+    {"parameters": {"rule": {"interval": [{"field": "hours", "hoursInterval": 24}]}}, "name": "Every morning", "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.1, "position": [0, 0]},
+    {"parameters": {"operation": "read", "documentId": {"__rl": true, "value": "1AbCdEfGhIjK_sales_sheet_id", "mode": "id"}, "sheetName": {"__rl": true, "value": "Orders", "mode": "name"}}, "name": "Read orders sheet", "type": "n8n-nodes-base.googleSheets", "typeVersion": 4, "position": [220, 0], "credentials": {"googleSheetsOAuth2Api": {"id": "12", "name": "Yasser Google account"}}},
+    {"parameters": {"jsCode": "const total = $input.all().reduce((s, i) => s + Number(i.json.amount || 0), 0);\nreturn [{json: {total, count: $input.all().length}}];"}, "name": "Sum amounts", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [440, 0]},
+    {"parameters": {"select": "channel", "channelId": {"__rl": true, "value": "#sales-daily", "mode": "name"}, "text": "=Yesterday: {{$json.count}} orders, total {{$json.total}} USD"}, "name": "Post to Slack", "type": "n8n-nodes-base.slack", "typeVersion": 2.1, "position": [660, 0], "credentials": {"slackApi": {"id": "7", "name": "Sales team Slack bot"}}},
+    {"parameters": {"content": "Reads yesterday's orders from the Orders tab and posts a one-line summary to #sales-daily every morning."}, "name": "Sticky Note", "type": "n8n-nodes-base.stickyNote", "typeVersion": 1, "position": [0, -200]}
+  ],
+  "connections": {
+    "Every morning": {"main": [[{"node": "Read orders sheet", "type": "main", "index": 0}]]},
+    "Read orders sheet": {"main": [[{"node": "Sum amounts", "type": "main", "index": 0}]]},
+    "Sum amounts": {"main": [[{"node": "Post to Slack", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1"}
+}

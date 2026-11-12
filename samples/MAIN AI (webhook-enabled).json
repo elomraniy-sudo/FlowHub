@@ -1,0 +1,597 @@
+{
+  "name": "MAIN AI (webhook-enabled)",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        192
+      ],
+      "id": "3757d32d-9300-44f1-9ab1-e154c757644e",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "returnAll": true,
+        "filter": {
+          "driveId": {
+            "__rl": true,
+            "value": "My Drive",
+            "mode": "list",
+            "cachedResultName": "My Drive",
+            "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+          },
+          "folderId": {
+            "__rl": true,
+            "value": "1WzwOoFR_lBZqaST2ZN4F4f9ZwXZn6CdX",
+            "mode": "list",
+            "cachedResultName": "AI Project",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1WzwOoFR_lBZqaST2ZN4F4f9ZwXZn6CdX"
+          },
+          "whatToSearch": "files"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        16,
+        96
+      ],
+      "id": "eb83a850-3ec6-4119-a744-bc1a4960e68f",
+      "name": "Get Existing JSON Flows3",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "iN6hySb3I7yF5cCv",
+          "name": "Google Drive account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a1f0c2d4-1b2c-4d3e-8f90-111111111111",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": ".json",
+              "operator": {
+                "type": "string",
+                "operation": "endsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        96
+      ],
+      "id": "1a71c5df-3bf8-4ee3-9707-19727c9be662",
+      "name": "Keep Only JSON Files2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c3b2e4f6-3d4e-4f5a-8b12-333333333333",
+              "name": "Flow Name",
+              "value": "={{ $json.name.replace(/\\.json$/i, '') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        96
+      ],
+      "id": "299a8291-235f-4c2b-8402-2871094a5fc2",
+      "name": "Add Flow Name2"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Cenq497IektpOrMDtyELOmE5cYsALmTMUo5j2m2EA44",
+          "mode": "list",
+          "cachedResultName": "All N8N Flows",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Cenq497IektpOrMDtyELOmE5cYsALmTMUo5j2m2EA44/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Main",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Cenq497IektpOrMDtyELOmE5cYsALmTMUo5j2m2EA44/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        464,
+        288
+      ],
+      "id": "e47d800c-d562-40ad-8c2e-6d144cf9bfbe",
+      "name": "Get All Flows To Check3",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "z9aM1Rf3YSkhEiAz",
+          "name": "Google Sheets account 34"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "Flow Name",
+        "joinMode": "keepNonMatches",
+        "outputDataFrom": "input1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        688,
+        192
+      ],
+      "id": "24cb13c4-91fe-4755-bc34-c6602d004adf",
+      "name": "Find Missing Flows2"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        912,
+        192
+      ],
+      "id": "ef45f0b7-96a1-4f35-90aa-987b6906a2b6",
+      "name": "Download JSON File2",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "iN6hySb3I7yF5cCv",
+          "name": "Google Drive account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        192
+      ],
+      "id": "f9e40ad0-96b5-493c-8f35-49d86046a072",
+      "name": "Read JSON Content2"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Shrink the exported flow and hide secrets before sending it to the LLM\nconst wf = $json.data ?? $json;\nconst SENSITIVE = /(api[-_]?key|token|secret|password|authorization|bearer)/i;\n\nconst redact = (v) => {\n  if (Array.isArray(v)) return v.map(redact);\n  if (v && typeof v === 'object') {\n    const nameIsSecret = typeof v.name === 'string' && SENSITIVE.test(v.name);\n    return Object.fromEntries(\n      Object.entries(v).map(([k, val]) => [\n        k,\n        SENSITIVE.test(k) || (nameIsSecret && k === 'value') ? '[REDACTED]' : redact(val),\n      ])\n    );\n  }\n  if (\n    typeof v === 'string' &&\n    (/^\\s*(bearer|basic)\\s+\\S+/i.test(v) || /\\b(sk-|xox[a-z]-|ghp_|AIza)[A-Za-z0-9_-]{16,}/.test(v))\n  ) {\n    return '[REDACTED]';\n  }\n  return v;\n};\n\n// Same name that was used to compare against the sheet (file name without .json)\nconst sheetName = $('Find Missing Flows2').item.json['Flow Name'];\n\nconst compact = {\n  name: wf.name,\n  nodes: (wf.nodes || []).map((n) => ({\n    name: n.name,\n    type: n.type,\n    typeVersion: n.typeVersion,\n    disabled: n.disabled || false,\n    notes: n.notes,\n    credentials: Object.entries(n.credentials || {}).map(([type, c]) => ({ type, name: c && c.name })),\n    parameters: redact(n.parameters),\n  })),\n  connections: wf.connections,\n};\n\nreturn {\n  json: {\n    flowName: sheetName,\n    flowId: wf.id ?? '',\n    flowJson: JSON.stringify(compact),\n  },\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        192
+      ],
+      "id": "69badfb7-8d6c-49f5-bb14-6ed80ab0ca00",
+      "name": "Prepare Flow For LLM1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://compass.llm.shopee.io/compass-api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: 'compass-max',\n  temperature: 0.2,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are an expert n8n engineer and technical writer. You receive one exported n8n workflow as JSON.',\n        'Reply in exactly two parts, separated by a line that contains only ===DOC===',\n        'PART 1 (before the separator): a small description of the flow in plain text, 1-2 sentences, max 250 characters, no label.',\n        'PART 2 (after the separator): full documentation as PLAIN TEXT for a Google Doc. Do not use HTML, markdown symbols (no #, no **) or code fences. Write each section title in UPPERCASE on its own line, followed by a blank line. Use numbered lines for ordered steps and lines starting with a dash for lists. For tables, write one dash line per row in the form: Node: X | Type: Y | What it does: Z.',\n        'PART 2 must contain these sections in this order: the flow name as a title; OVERVIEW; TRIGGER; STEP-BY-STEP FLOW (numbered, in execution order, using the node names); NODE REFERENCE (one line per node: Node | Type | What it does); CREDENTIALS TO CHANGE (one line per credential: Node | Credential type | Credential name in the export | What the user must do); VALUES TO CHANGE BEFORE USING (one line per item: Node | Parameter | Current value | What to change) covering hardcoded IDs, folder, sheet or file IDs, URLs, emails, chat or channel IDs, webhook paths, model names and any placeholder text; INPUTS AND OUTPUTS; RISKS AND TROUBLESHOOTING.',\n        'Values shown as [REDACTED] were secrets in the original flow, so list them as secrets that must be re-entered.',\n        'Do not invent anything. If something is unclear from the JSON, say so.'\n      ].join('\\n')\n    },\n    {\n      role: 'user',\n      content: 'Flow name: ' + $json.flowName + '\\n\\nWorkflow JSON (credentials are listed by type and name only, secrets are replaced with [REDACTED]):\\n' + $json.flowJson\n    }\n  ]\n}) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1584,
+        192
+      ],
+      "id": "12cc141b-1f8e-4852-9b87-ce598c835935",
+      "name": "Send To Compass LLM1",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "9wJMmMyWuQTRCA1V",
+          "name": "Header Auth account 19"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d1e2f3a4-0001-4aaa-8bbb-000000000021",
+              "name": "Flow Name",
+              "value": "={{ $('Parse LLM Response1').item.json.flowName }}",
+              "type": "string"
+            },
+            {
+              "id": "d1e2f3a4-0002-4aaa-8bbb-000000000022",
+              "name": "Flow ID",
+              "value": "={{ $('Parse LLM Response1').item.json.flowId }}",
+              "type": "string"
+            },
+            {
+              "id": "d1e2f3a4-0003-4aaa-8bbb-000000000023",
+              "name": "Small Description",
+              "value": "={{ $('Parse LLM Response1').item.json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "d1e2f3a4-0004-4aaa-8bbb-000000000024",
+              "name": "Doc Link",
+              "value": "={{ 'https://docs.google.com/document/d/' + ($json.documentId ?? $('Create Documentation Doc1').item.json.id) + '/edit' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2480,
+        192
+      ],
+      "id": "2d4536c5-b765-412d-b43e-71298f5db289",
+      "name": "Build Sheet Row"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Split the LLM answer into a small description and the full plain-text documentation\nconst prep = $('Prepare Flow For LLM1').item.json;\nconst raw = String($json.choices?.[0]?.message?.content ?? $json.output ?? '');\n\nconst clean = raw\n  .replace(/<think>[\\s\\S]*?<\\/think>/gi, '')\n  .replace(/```[a-z]*\\n?/gi, '')\n  .replace(/<\\/?[a-z][^>]*>/gi, '')\n  .replace(/\\*\\*/g, '')\n  .replace(/^#{1,6}\\s*/gm, '')\n  .trim();\n\nconst parts = clean.split(/^[ \\t]*={2,}\\s*DOC\\s*={2,}[ \\t]*$/im);\n\nlet description;\nlet docText;\nif (parts.length > 1) {\n  description = parts[0];\n  docText = parts.slice(1).join('\\n').trim();\n} else {\n  // The model ignored the separator: use everything as the doc and cut a short description\n  docText = clean;\n  description = clean.slice(0, 250);\n}\ndescription = description.replace(/\\s+/g, ' ').trim().replace(/^(small )?description:?\\s*/i, '').slice(0, 300);\n\nreturn {\n  json: {\n    flowName: prep.flowName,\n    flowId: prep.flowId,\n    title: `${prep.flowName} - Documentation`,\n    description,\n    docText,\n  },\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1808,
+        192
+      ],
+      "id": "53dcfc8b-4bd7-4208-b2c6-4d126baf14f1",
+      "name": "Parse LLM Response1"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1Cenq497IektpOrMDtyELOmE5cYsALmTMUo5j2m2EA44",
+          "mode": "list",
+          "cachedResultName": "All N8N Flows",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Cenq497IektpOrMDtyELOmE5cYsALmTMUo5j2m2EA44/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Main",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Cenq497IektpOrMDtyELOmE5cYsALmTMUo5j2m2EA44/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "Flow Name"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2704,
+        192
+      ],
+      "id": "3ca059c1-c7ae-4a07-a8d0-3fa5dc6413ff",
+      "name": "Save To Sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "z9aM1Rf3YSkhEiAz",
+          "name": "Google Sheets account 34"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "folderId": "1mz3y3EkVInEnt0GOaggF6715qbVeKFhm",
+        "title": "={{ $json.title }}"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        2032,
+        192
+      ],
+      "id": "6e38d0e4-7c01-420a-9fba-ed7ecb6347e3",
+      "name": "Create Documentation Doc1",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "X6shY4tJNaMAIREv",
+          "name": "Google Docs account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id ?? $json.documentId }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $('Parse LLM Response1').item.json.docText }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        2256,
+        192
+      ],
+      "id": "d6ad7e16-14d4-4b02-8aaf-9e568d7c41d2",
+      "name": "Write Documentation1",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "X6shY4tJNaMAIREv",
+          "name": "Google Docs account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "flowhub-main-ai",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "FlowHub trigger (webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        412
+      ],
+      "webhookId": "flowhub-main-ai"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get Existing JSON Flows3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get All Flows To Check3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Existing JSON Flows3": {
+      "main": [
+        [
+          {
+            "node": "Keep Only JSON Files2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep Only JSON Files2": {
+      "main": [
+        [
+          {
+            "node": "Add Flow Name2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Flow Name2": {
+      "main": [
+        [
+          {
+            "node": "Find Missing Flows2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Flows To Check3": {
+      "main": [
+        [
+          {
+            "node": "Find Missing Flows2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Find Missing Flows2": {
+      "main": [
+        [
+          {
+            "node": "Download JSON File2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download JSON File2": {
+      "main": [
+        [
+          {
+            "node": "Read JSON Content2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read JSON Content2": {
+      "main": [
+        [
+          {
+            "node": "Prepare Flow For LLM1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Flow For LLM1": {
+      "main": [
+        [
+          {
+            "node": "Send To Compass LLM1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send To Compass LLM1": {
+      "main": [
+        [
+          {
+            "node": "Parse LLM Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Sheet Row": {
+      "main": [
+        [
+          {
+            "node": "Save To Sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse LLM Response1": {
+      "main": [
+        [
+          {
+            "node": "Create Documentation Doc1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Documentation Doc1": {
+      "main": [
+        [
+          {
+            "node": "Write Documentation1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Documentation1": {
+      "main": [
+        [
+          {
+            "node": "Build Sheet Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FlowHub trigger (webhook)": {
+      "main": [
+        [
+          {
+            "node": "Get Existing JSON Flows3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get All Flows To Check3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "45e75568ce9cd8f130f3541bce32fef3cd30857e33e494de13620cea0b0fcd5f"
+  },
+  "nodeGroups": [],
+  "tags": []
+}

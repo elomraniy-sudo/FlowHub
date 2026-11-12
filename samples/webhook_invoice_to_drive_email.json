@@ -1,0 +1,15 @@
+{
+  "name": "Invoice PDF intake: Webhook -> Google Drive -> Gmail notification",
+  "nodes": [
+    {"parameters": {"httpMethod": "POST", "path": "invoice-intake", "options": {}}, "name": "Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [0, 0], "webhookId": "a1b2c3"},
+    {"parameters": {"operation": "upload", "driveId": {"__rl": true, "value": "My Drive", "mode": "list"}, "folderId": {"__rl": true, "value": "1FolderIdForInvoices", "mode": "id"}, "name": "={{$json.body.vendor}}-{{$json.body.invoice_no}}.pdf"}, "name": "Save PDF to Drive", "type": "n8n-nodes-base.googleDrive", "typeVersion": 3, "position": [220, 0], "credentials": {"googleDriveOAuth2Api": {"id": "3", "name": "Finance Drive"}}},
+    {"parameters": {"sendTo": "finance-ap@company.com", "subject": "=New invoice from {{$json.body.vendor}}", "message": "=Saved to Drive: {{$json.webViewLink}}", "options": {}}, "name": "Notify AP team", "type": "n8n-nodes-base.gmail", "typeVersion": 2.1, "position": [440, 0], "credentials": {"gmailOAuth2": {"id": "4", "name": "Finance Gmail"}}},
+    {"parameters": {"respondWith": "json", "responseBody": "={\"ok\": true}"}, "name": "Respond", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1, "position": [660, 0]}
+  ],
+  "connections": {
+    "Webhook": {"main": [[{"node": "Save PDF to Drive", "type": "main", "index": 0}]]},
+    "Save PDF to Drive": {"main": [[{"node": "Notify AP team", "type": "main", "index": 0}]]},
+    "Notify AP team": {"main": [[{"node": "Respond", "type": "main", "index": 0}]]}
+  },
+  "settings": {}
+}
